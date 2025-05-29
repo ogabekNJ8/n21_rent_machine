@@ -4,7 +4,6 @@ CREATE TABLE `user`(
     `phone` VARCHAR(20) NOT NULL,
     `email` VARCHAR(255) NOT NULL,
     `password` VARCHAR(255) NOT NULL,
-    `role` ENUM('') NOT NULL,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP());
 ALTER TABLE
     `user` ADD UNIQUE `user_phone_unique`(`phone`);
@@ -20,7 +19,7 @@ CREATE TABLE `machine`(
     `price_per_hour` DECIMAL(10, 2) NOT NULL,
     `description` TEXT NOT NULL,
     `is_available` BOOLEAN NOT NULL DEFAULT 'DEFAULT TRUE',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(), `category_id` INT NOT NULL, `owner_id` INT NOT NULL, `location_id` BIGINT NOT NULL, `region_id` BIGINT NOT NULL, `district_id` BIGINT NOT NULL, `min_hour` VARCHAR(255) NOT NULL, `min_price` DECIMAL(8, 2) NOT NULL);
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(), `category_id` INT NOT NULL, `owner_id` INT NOT NULL, `region_id` BIGINT NOT NULL, `district_id` BIGINT NOT NULL, `min_hour` VARCHAR(255) NOT NULL, `min_price` DECIMAL(8, 2) NOT NULL);
 CREATE TABLE `contract`(
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `total_price` DECIMAL(10, 2) NOT NULL,
@@ -43,9 +42,8 @@ CREATE TABLE `payment`(
 );
 CREATE TABLE `user_location`(
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `region` VARCHAR(255) NOT NULL,
-    `city` VARCHAR(255) NOT NULL,
-    `description` VARCHAR(255) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `address` VARCHAR(255) NOT NULL,
     `user_id` BIGINT NOT NULL
 );
 CREATE TABLE `status`(
@@ -76,12 +74,27 @@ CREATE TABLE `region`(
 );
 CREATE TABLE `district`(
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(255) NOT NULL
+    `name` VARCHAR(255) NOT NULL,
+    `region_id` BIGINT NOT NULL
+);
+CREATE TABLE `role`(
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `description` VARCHAR(255) NOT NULL
+);
+CREATE TABLE `user_role`(
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT NOT NULL,
+    `role_id` BIGINT NOT NULL
 );
 ALTER TABLE
     `machine` ADD CONSTRAINT `machine_category_id_foreign` FOREIGN KEY(`category_id`) REFERENCES `category`(`id`);
 ALTER TABLE
     `machine` ADD CONSTRAINT `machine_owner_id_foreign` FOREIGN KEY(`owner_id`) REFERENCES `user`(`id`);
+ALTER TABLE
+    `user_role` ADD CONSTRAINT `user_role_user_id_foreign` FOREIGN KEY(`user_id`) REFERENCES `user`(`id`);
+ALTER TABLE
+    `district` ADD CONSTRAINT `district_region_id_foreign` FOREIGN KEY(`region_id`) REFERENCES `region`(`id`);
 ALTER TABLE
     `contract` ADD CONSTRAINT `contract_machine_id_foreign` FOREIGN KEY(`machine_id`) REFERENCES `machine`(`id`);
 ALTER TABLE
@@ -94,6 +107,8 @@ ALTER TABLE
     `payment` ADD CONSTRAINT `payment_contract_id_foreign` FOREIGN KEY(`contract_id`) REFERENCES `contract`(`id`);
 ALTER TABLE
     `review` ADD CONSTRAINT `review_user_id_foreign` FOREIGN KEY(`user_id`) REFERENCES `user`(`id`);
+ALTER TABLE
+    `user_role` ADD CONSTRAINT `user_role_role_id_foreign` FOREIGN KEY(`role_id`) REFERENCES `role`(`id`);
 ALTER TABLE
     `image` ADD CONSTRAINT `image_machine_id_foreign` FOREIGN KEY(`machine_id`) REFERENCES `machine`(`id`);
 ALTER TABLE

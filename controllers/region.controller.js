@@ -1,4 +1,6 @@
 const { sendErrorresponse } = require("../helpers/send_error_response");
+const District = require("../models/district.model");
+const Machine = require("../models/machine.model");
 const Region = require("../models/region.model");
 
 const addRegion = async (req, res) => {
@@ -7,29 +9,48 @@ const addRegion = async (req, res) => {
     const newRegion = await Region.create({ name });
     res.status(201).send({ message: "New region added", newRegion });
   } catch (error) {
-    sendErrorresponse(error, res);
+    sendErrorresponse(error, res, 400);
   }
 };
 
 const getAllRegions = async (req, res) => {
   try {
-    const regions = await Region.findAll();
+    const regions = await Region.findAll({
+      include: [
+        {
+          model: District,
+          attributes: ["name"],
+        },
+      ],
+      attributes: ["name"]
+    });
     res.send(regions);
   } catch (error) {
-    sendErrorresponse(error, res);
+    sendErrorresponse(error, res, 400);
   }
 };
 
 const getRegion = async (req, res) => {
   try {
     const { id } = req.params;
-    const region = await Region.findByPk(id);
+    const region = await Region.findByPk(id, {
+      include: [
+        {
+          model: Machine,
+          attributes: ["name", "price_per_hour", "is_available"]
+        },
+        {
+          model: District,
+          attributes: ["name"]
+        },
+      ],
+    });
     if (!region) {
       return res.status(404).send({ message: "Region not found" });
     }
     res.send(region);
   } catch (error) {
-    sendErrorresponse(error, res);
+    sendErrorresponse(error, res, 400);
   }
 };
 
