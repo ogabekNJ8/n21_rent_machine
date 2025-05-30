@@ -4,5 +4,11 @@
   "db_username": "postgres",
   "db_port": 5432,
   "db_password": "3333",
-  "db_name": "rent_machine"
+  "db_name": "rent_machine",
+
+  "access_key": "AccessTokenKeyssokdsiefdsjkffn",
+  "refresh_key": "RefreshTokenKeyssokdsiefdsjkffn",
+  "access_time": "10h",
+  "refresh_time": "20h",
+  "cookie_refresh_time": 1296000000
 }

@@ -1,58 +1,45 @@
 const User = require("../models/user.model");
-const Role = require("../models/role.model");
 const { sendErrorresponse } = require("../helpers/send_error_response");
-const { where } = require("sequelize");
-const bcrypt = require("bcrypt");
-const UserAddress = require("../models/user.address.model");
+const Role = require("../models/role.model");
 
-const addUser = async (req, res) => {
+const addRole = async (req, res) => {
   try {
-    const { full_name, phone, email, password, confirm_password } = req.body;
+    const { name, description } = req.body;
 
-    const candidate = await User.findOne({ where: { email } });
-    if (candidate) {
-      return sendErrorresponse({ message: "Bunday user mavjud" }, res, 400);
+    const lowerCaseName = name.toLowerCase();
+
+    const position = await Role.findOne({ where: { name: lowerCaseName } });
+    if (position) {
+      return sendErrorresponse({ message: "Bunday role mavjud" }, res, 400);
     }
 
-    if (password !== confirm_password) {
-      return sendErrorresponse({ message: "Bunday user mavjud" }, res, 400);
-    }
-
-    const hashed_password = await bcrypt.hash(password, 7);
-
-    const newUser = await User.create({
-      full_name,
-      phone,
-      email,
-      hashed_password,
+    const newRole = await Role.create({
+      name: lowerCaseName,
+      description,
     });
 
     res.status(201).json({
-      message: "User created successfully",
-      user: newUser,
+      message: "Role created successfully",
+      role: newRole,
     });
   } catch (error) {
     sendErrorresponse(error, res, 400);
   }
 };
 
-const getAllUsers = async (req, res) => {
+
+const getAllRoles = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const roles = await Role.findAll({
       include: [
         {
-          model: UserAddress,
-          attributes: ["name", "address"],
-        },
-        {
-          model: Role,
-          attributes: ["name"],
-          through: {attributes: []}
+          model: User,
+          attributes: ["full_name"]
         },
       ],
-      attributes: [ "id", "full_name", "phone"],
+      attributes: ["name"]
     });
-    res.status(200).json(users);
+    res.status(200).json(roles);
   } catch (error) {
     sendErrorresponse(error, res);
   }
@@ -108,8 +95,8 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
-  addUser,
-  getAllUsers,
+  addRole,
+  getAllRoles,
   getUser,
   updateUser,
   deleteUser,
