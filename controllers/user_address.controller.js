@@ -34,7 +34,6 @@ const addUserAddress = async (req, res) => {
 const getUserAddresses = async (req, res) => {
   try {
     const userAddresses = await UserAddress.findAll({
-      // include: User,
       include: [
         {
           model: User,
@@ -52,7 +51,47 @@ const getUserAddresses = async (req, res) => {
   }
 };
 
+const getUserAddress = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    if (isNaN(userId)) {
+      return sendErrorresponse(
+        { message: "ID raqam bo‘lishi kerak" },
+        res,
+        400
+      );
+    }
+
+    const user = await User.findByPk(userId, {
+      attributes: ["id", "full_name", "phone"],
+    });
+
+    if (!user) {
+      return sendErrorresponse(
+        { message: "Foydalanuvchi topilmadi" },
+        res,
+        404
+      );
+    }
+
+    const addresses = await UserAddress.findAll({
+      where: { userId },
+      attributes: ["id", "name", "address"],
+    });
+
+    return res.status(200).json({
+      user,
+      addresses,
+    });
+  } catch (error) {
+    return sendErrorresponse(error, res, 500);
+  }
+};
+
+
 module.exports = {
   addUserAddress,
   getUserAddresses,
+  getUserAddress
 };

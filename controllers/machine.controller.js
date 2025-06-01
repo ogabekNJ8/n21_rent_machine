@@ -1,10 +1,11 @@
 const { sendErrorresponse } = require("../helpers/send_error_response");
-const Machine = require("../models/machine.model")
-const User = require("../models/user.model")
-const Region = require("../models/region.model")
-const District = require("../models/district.model")
+const Machine = require("../models/machine.model");
+const User = require("../models/user.model");
+const Region = require("../models/region.model");
+const District = require("../models/district.model");
 const Category = require("../models/category.model");
 const Image = require("../models/image.model");
+const sequelize = require("../config/db");
 
 const addMachine = async (req, res) => {
   try {
@@ -136,10 +137,53 @@ const deleteMachine = async (req, res) => {
   }
 };
 
+const getMachineQuery = async (req, res) => {
+  try {
+    const { district_name, category_name } = req.body;
+
+    const [machines] = await sequelize.query(
+      `SELECT *
+        FROM "machine" m
+        LEFT JOIN district d ON m."districtId" = d.id
+        LEFT JOIN category ctg ON m."categoryId" = ctg.id
+        WHERE ctg.name ILIKE $1
+          AND d.name ILIKE $2
+      `,
+      {
+        bind: [`%${category_name}%`, `%${district_name}%`],
+      }
+    );
+
+    res.status(200).send({ machines });
+  } catch (error) {
+    sendErrorresponse(error, res, 400);
+  }
+};
+
+const getMachinePicture = async (req, res) => {
+  try {
+    const machines = await Machine.findAll({
+      include: [
+        {
+          model: Image,
+          attributes: [],
+        },
+      ],
+      group: ["machine.id"],
+      having: sequelize.literal("COUNT(images.id) > 1"),
+    });
+    res.status(200).send({ machines });
+  } catch (error) {
+    sendErrorresponse(error, res, 400);
+  }
+};
+
 module.exports = {
   addMachine,
   getAllMachines,
   getMachine,
   updateMachine,
   deleteMachine,
+  getMachineQuery,
+  getMachinePicture,
 };

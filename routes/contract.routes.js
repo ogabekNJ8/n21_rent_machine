@@ -5,9 +5,11 @@ const {
   getContract,
   updateContract,
   deleteContract,
+  getByStatus,
 } = require("../controllers/contract.controller");
 
 router.post("/", addContract);
+router.post("/status", getByStatus);
 router.get("/", getAllContracts);
 router.get("/:id", getContract);
 router.patch("/:id", updateContract);

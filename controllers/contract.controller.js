@@ -5,6 +5,7 @@ const Status = require("../models/status.model");
 const Commission = require("../models/commission.model");
 const { sendErrorresponse } = require("../helpers/send_error_response");
 const Payment = require("../models/payment.model");
+const { Op } = require("sequelize");
 
 const addContract = async (req, res) => {
   try {
@@ -127,10 +128,41 @@ const deleteContract = async (req, res) => {
   }
 };
 
+const getByStatus = async (req, res) => {
+  try {
+    const { start_time, end_time } = req.body;
+
+    if (!start_time || !end_time) {
+      return res
+        .status(400)
+        .json({ message: "start_time va end_time talab qilinadi" });
+    }
+
+    const contracts = await Contract.findAll({
+      include: [
+        {
+          model: Status,
+          where: { name: "Cancelled" },
+        },
+      ],
+      where: {
+        date: {
+          [Op.between]: [new Date(start_time), new Date(end_time)],
+        },
+      },
+    });
+
+    res.json(contracts);
+  } catch (error) {
+    sendErrorresponse(error, res, 400)
+  }
+}
+
 module.exports = {
   addContract,
   getAllContracts,
   getContract,
   updateContract,
   deleteContract,
+  getByStatus,
 };
